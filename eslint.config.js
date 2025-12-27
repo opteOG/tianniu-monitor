@@ -1,11 +1,11 @@
-const eslint = require('@eslint/js')
-const globals = require('globals')
-const reactHooks = require('eslint-plugin-react-hooks')
-const reactRefresh = require('eslint-plugin-react-refresh')
-const eslintPrettier = require('eslint-plugin-prettier')
-const importSort = require('eslint-plugin-simple-import-sort')
+import eslint from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import eslintPrettier from 'eslint-plugin-prettier'
+import importSort from 'eslint-plugin-simple-import-sort'
 
-const tseslint = require('typescript-eslint')
+import tseslint from 'typescript-eslint'
 
 const ignores = [
   'dist',
@@ -55,7 +55,7 @@ const backendMonitorConfig = {
   },
 }
 
-module.exports = tseslint.config(
+export default tseslint.config(
   {
     ignores,
     extends: [eslint.configs.recommended, ...tseslint.configs.recommended],

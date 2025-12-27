@@ -1,4 +1,4 @@
-const fg = require('fast-glob')
+import fg from 'fast-glob'
 
 const getPackages = packagePath => fg.sync('*', { cwd: packagePath, onlyDirectories: true, deep: 2 })
 
@@ -17,7 +17,7 @@ const scopes = [
 
 // Emoji
 /** @type {import('cz-git').UserConfig} */
-module.exports = {
+export default {
   extends: ['@commitlint/config-conventional'], // extends can be nested
   parserPreset: 'conventional-changelog-conventionalcommits',
   rules: {
