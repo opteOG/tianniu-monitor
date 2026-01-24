@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  tianniu-monitor-clickhouse:
+    image: clickhouse:25.10
+    container_name: tianniu-monitor-clickhouse
+    ports:
+      - "8123:8123"   # HTTP
+      - "9000:9000"   # Native
+    environment:
+      CLICKHOUSE_USER: tianniu
+      CLICKHOUSE_PASSWORD: tianniu123
+      CLICKHOUSE_DB: tianniu
+
+  tianniu-monitor-postgres:
+    image: postgres:18.1
+    container_name: tianniu-monitor-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=tianniu
+      - POSTGRES_PASSWORD=tianniu123
+      - POSTGRES_DB=tianniu-monitor
+
