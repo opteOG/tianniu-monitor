@@ -1,18 +1,10 @@
-/*
- *   Copyright (c) 2024 妙码学院 @Heyi
- *   All rights reserved.
- *   妙码学院官方出品，作者 @Heyi，供学员学习使用，可用作练习，可用作美化简历，不可开源。
- */
-
 import { useQuery } from '@tanstack/react-query'
-import { Bug, CalendarCheck, Lightbulb, Package, Settings, Siren, Zap } from 'lucide-react'
+import { Activity, Bug, Package, Settings, User } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
-import { Issue, IssueRes } from '@/pages/Issues'
 import * as srv from '@/services'
 import { miaoConfetti } from '@/utils/miao-confetti'
 import { queryClient } from '@/utils/query-client'
@@ -30,27 +22,6 @@ export function Aside() {
         },
     })
 
-    const { data: issues } = useQuery({
-        queryKey: ['issues'],
-        queryFn: async () => {
-            const res = await fetch('/dsn-api/bugs')
-            const issues = await res.json()
-            const parsedIssues = issues.map((issue: IssueRes, index: number) => ({
-                id: index + 1,
-                title: issue.info.type,
-                description: issue.message,
-                status: 'active',
-                createdAt: new Date(issue.created_at),
-                appId: issue.app_id,
-                events: Math.ceil(Math.random() * 20),
-                users: Math.ceil(Math.random() * 10),
-            }))
-            return parsedIssues as Issue[]
-
-            // return MOCK_ISSUES
-        },
-    })
-
     const menus = [
         {
             name: 'projects',
@@ -59,31 +30,19 @@ export function Aside() {
             gap: true,
         },
         {
-            name: 'issues',
+            name: 'errors',
             icon: Bug,
-            title: '缺陷',
-            badge: issues?.length || 0,
+            title: '监控-错误',
         },
         {
-            name: 'performance',
-            icon: Zap,
-            title: '性能',
-            gap: true,
+            name: 'performance-metrics',
+            icon: Activity,
+            title: '监控-性能指标',
         },
         {
-            name: 'dashboard',
-            icon: Lightbulb,
-            title: '监控',
-        },
-        {
-            name: 'crons',
-            icon: CalendarCheck,
-            title: '定时任务',
-        },
-        {
-            name: 'alerts',
-            icon: Siren,
-            title: '告警',
+            name: 'user-behavior',
+            icon: User,
+            title: '监控-用户行为',
         },
     ]
 
@@ -103,8 +62,7 @@ export function Aside() {
             <div className="flex h-full max-h-screen flex-col gap-2">
                 <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                     <a href="/" className="flex items-center gap-2 ">
-                        <img className="w-10" src="/logo.png" />
-                        <p className="font-semibold text-lg">妙码学院监控平台</p>
+                        <p className="font-semibold text-lg">性能与异常监控平台</p>
                     </a>
                 </div>
                 <div className="flex-1">
@@ -123,11 +81,6 @@ export function Aside() {
                                 >
                                     <menu.icon className="h-4 w-4" />
                                     {menu.title}
-                                    {menu.badge && (
-                                        <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-                                            {menu.badge}
-                                        </Badge>
-                                    )}
                                 </NavLink>
                                 {menu.gap && <div className="my-3 h-[1px] bg-gray-100" />}
                             </>

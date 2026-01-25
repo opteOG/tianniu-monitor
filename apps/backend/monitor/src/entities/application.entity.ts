@@ -1,8 +1,4 @@
-/*
- *   Copyright (c) 2024 妙码学院 @Heyi
- *   All rights reserved.
- *   妙码学院官方出品，作者 @Heyi，供学员学习使用，可用作练习，可用作美化简历，不可开源。
- */
+
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 
 import { AdminEntity } from './admin.entity'
@@ -59,13 +55,7 @@ export class ApplicationEntity {
     @Column({ nullable: true })
     updatedAt?: Date
 
-    /**
-     * 项目所属用户
-     * 这就是我们讲到的，表之间的关联关系
-     * 这里我们定义了一个多对一的关系，即一个用户可以有多个项目
-     * 除了多对一，还有一对一、一对多、多对多等关系
-     * 分别为：@OneToOne、@OneToMany、@ManyToMany、
-     */
+
     @ManyToOne('AdminEntity', 'applications')
     user: AdminEntity
 }

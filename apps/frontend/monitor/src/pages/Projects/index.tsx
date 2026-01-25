@@ -1,230 +1,147 @@
-/*
- *   Copyright (c) 2024 妙码学院 @Heyi
- *   All rights reserved.
- *   妙码学院官方出品，作者 @Heyi，供学员学习使用，可用作练习，可用作美化简历，不可开源。
- */
 import { useQuery } from '@tanstack/react-query'
-import copyText from 'copy-text-to-clipboard'
-import { lightFormat } from 'date-fns'
-import { Copy, Package, Settings } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Package, TrendingDown, TrendingUp, Users } from 'lucide-react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { AppSelector, useAppSelector } from '@/components/AppSelector'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { useToast } from '@/hooks/use-toast'
 import * as srv from '@/services'
-import { CreateApplicationPayload } from '@/types/api'
+import { ProjectMetrics } from '@/types/project-overview'
 
 import { CreateProjectsModal } from './CreateProjectModal'
-import { appLogoMap } from './meta'
+
+/**
+ * 核心指标卡片组件
+ */
+function MetricCard({ title, value, icon: Icon, trend, trendValue }: { title: string; value: string | number; icon: React.ComponentType<{ className?: string }>; trend?: 'up' | 'down'; trendValue?: string }) {
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                <Icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{value}</div>
+                {trend && trendValue && (
+                    <div className={`flex items-center text-xs mt-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                        {trend === 'up' ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                        {trendValue}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
 
 export function Projects() {
-    const { toast } = useToast()
-    const {
-        data: applications,
-        isLoading,
-        refetch,
-    } = useQuery({
+    const { selectedAppId, setSelectedAppId, applications, isLoadingApps } = useAppSelector()
+
+    // 获取应用列表（用于refetch）
+    const { refetch: refetchApps } = useQuery({
         queryKey: ['applications'],
         queryFn: async () => {
             const res = await srv.fetchApplicationList()
-            const allEvents = await fetch('/dsn-api/span')
-            const allEventsData = await allEvents.json()
-            return res.data.applications.map(app => {
-                // 错误
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const bugs = allEventsData.filter((event: any) => event.app_id === app.appId && event.event_type === 'error')
-                // 事务
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const transactions = allEventsData.filter((event: any) => event.app_id === app.appId && event.event_type !== 'error')
-                const data = new Array(7).fill(0).map((_, index) => ({
-                    date: new Date(new Date().setDate(new Date().getDate() - index)).toISOString(),
-                    resting: Math.floor(Math.random() * (100 - 20) + 20),
-                }))
-                return {
-                    ...app,
-                    bugs: bugs.length,
-                    transactions: transactions.length,
-                    data,
-                }
-            })
+            return res.data.applications
         },
+        enabled: false,
     })
 
-    const removeApplication = async (appId: string) => {
-        try {
-            await srv.removeApplication(appId)
-        } catch {
-            toast({
-                variant: 'destructive',
-                title: '删除失败, 请稍后重试',
+    // 获取项目总览数据
+    const {
+        data: overviewData,
+        isLoading: isLoadingOverview,
+    } = useQuery({
+        queryKey: ['project-overview', selectedAppId],
+        queryFn: async () => {
+            if (!selectedAppId) return null
+            const res = await srv.fetchProjectOverview({
+                appId: selectedAppId,
+                granularity: 'day',
             })
-            return
-        }
-        toast({
-            variant: 'success',
-            title: '删除成功',
-        })
-        refetch()
-    }
+            return res.data
+        },
+        enabled: !!selectedAppId,
+    })
 
-    const createApplication = async (data: CreateApplicationPayload) => {
+    const createApplication = async (data: Parameters<typeof srv.createApplication>[0]) => {
         try {
             await srv.createApplication(data)
         } catch {
-            toast({
-                variant: 'destructive',
-                title: '创建失败, 请稍后重试',
-            })
             return false
         }
-        toast({
-            variant: 'success',
-            title: '创建成功',
-        })
-        refetch()
+        refetchApps()
         return true
     }
 
-    const copyAppId = (appId: string) => {
-        toast({
-            variant: 'success',
-            title: '应用 ID 复制成功',
-        })
-        copyText(appId)
+    // 格式化指标值
+    const formatMetric = (metrics: ProjectMetrics | undefined) => {
+        if (!metrics) {
+            return {
+                pv: '-',
+                uv: '-',
+                errorRate: '-',
+                performanceScore: '-',
+            }
+        }
+        return {
+            pv: metrics.pv.toLocaleString(),
+            uv: metrics.uv.toLocaleString(),
+            errorRate: `${metrics.errorRate.toFixed(2)}%`,
+            performanceScore: metrics.performanceScore.toFixed(0),
+        }
     }
 
-    const applicationContent = applications?.map?.((application, index) => (
-        <div key={index} className="w-full">
-            <Card className="shadow-none hover:drop-shadow-xl">
-                <CardHeader className="w-full flex flex-row justify-between align-top">
-                    <div className="flex items-center h-[48px]">
-                        <img className="w-10 h-10 object-cover rounded-sm mr-3" src={appLogoMap[application.type]} alt="Project" />
-                        <div className="flex flex-col justify-center gap-1 items-stretch h-full">
-                            <CardTitle>
-                                <Link to="/project/1" className="font-semibold text-sm">
-                                    {application.name}
-                                </Link>
-                            </CardTitle>
-                            <CardDescription className="text-xs">
-                                缺陷：{application.bugs} | 事务：{application.transactions}
-                            </CardDescription>
-                        </div>
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <Settings className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => removeApplication(application.appId)}>删除</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </CardHeader>
-                <CardContent className="p-0 bg-muted">
-                    <ChartContainer
-                        config={{
-                            resting: {
-                                label: 'Resting',
-                                color: `hsl(var(--chart-${index + 1}))`,
-                            },
-                        }}
-                        className="h-[150px] w-full"
-                    >
-                        <LineChart
-                            accessibilityLayer
-                            margin={{
-                                left: 14,
-                                right: 14,
-                                top: 10,
-                            }}
-                            data={application.data}
-                        >
-                            <CartesianGrid
-                                strokeDasharray="4 4"
-                                vertical={false}
-                                stroke="hsl(var(--muted-foreground))"
-                                strokeOpacity={0.5}
-                            />
-                            <YAxis hide domain={['dataMin - 10', 'dataMax + 10']} />
-                            <XAxis
-                                dataKey="date"
-                                tickLine={false}
-                                axisLine={false}
-                                tickMargin={8}
-                                tickFormatter={value => {
-                                    return new Date(value).toLocaleDateString('zh-CN', {
-                                        weekday: 'short',
-                                    })
-                                }}
-                            />
-                            <Line
-                                dataKey="resting"
-                                type="natural"
-                                fill="var(--color-resting)"
-                                stroke="var(--color-resting)"
-                                strokeWidth={2}
-                                dot={false}
-                                activeDot={{
-                                    fill: 'var(--color-resting)',
-                                    stroke: 'var(--color-resting)',
-                                    r: 4,
-                                }}
-                            />
-                            <ChartTooltip
-                                content={
-                                    <ChartTooltipContent
-                                        indicator="line"
-                                        labelFormatter={value => {
-                                            return new Date(value).toLocaleDateString('zh-CN', {
-                                                day: 'numeric',
-                                                month: 'long',
-                                                year: 'numeric',
-                                            })
-                                        }}
-                                    />
-                                }
-                                cursor={false}
-                            />
-                        </LineChart>
-                    </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex flex-row items-center justify-between pt-6 gap-2 w-full">
-                    <p className="text-xs text-muted-foreground">创建时间：{lightFormat(application.createdAt, 'yyyy-MM-dd HH:mm:ss')}</p>
-                    <Button variant="secondary" size="sm" onClick={() => copyAppId(application.appId)}>
-                        <p className="text-xs text-left">应用 ID：{application.appId}</p>
-                        <Copy className="h-4 w-4 ml-2" />
-                    </Button>
-                </CardFooter>
-            </Card>
-        </div>
-    ))
+    const formattedMetrics = formatMetric(overviewData?.metrics)
 
-    const emptyContent = (
-        <div className="flex flex-col h-[calc(100vh-200px)] items-center justify-center space-y-4">
-            <h1 className="text-xl font-semibold">暂无应用</h1>
-            <p className="text-gray-500">当前没有任何应用，请添加新的内容来开始使用。</p>
-            <CreateProjectsModal onCreateProject={createApplication} />
-        </div>
-    )
+    // 格式化趋势图数据
+    const chartData = overviewData?.trends?.map(item => ({
+        date: new Date(item.date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+        pv: item.pv,
+        uv: item.uv,
+        errorRate: item.errorRate,
+        performanceScore: item.performanceScore,
+    })) || []
 
-    const content = isLoading ? (
-        <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground">加载中...</p>
-        </div>
-    ) : applications?.length ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">{applicationContent}</div>
-    ) : (
-        emptyContent
-    )
+    // 空状态：没有应用
+    if (!isLoadingApps && (!applications || applications.length === 0)) {
+        return (
+            <div className="flex flex-col h-full">
+                <header className="flex items-center justify-between h-[36px] mb-4">
+                    <h1 className="flex flex-row items-center text-xl font-semibold">
+                        <Package className="h-6 w-6 mr-2" />
+                        项目总览
+                    </h1>
+                </header>
+                <div className="flex flex-col h-[calc(100vh-200px)] items-center justify-center space-y-4">
+                    <h1 className="text-xl font-semibold">暂无应用</h1>
+                    <p className="text-gray-500">当前没有任何应用，请添加新的内容来开始使用。</p>
+                    <CreateProjectsModal onCreateProject={createApplication} />
+                </div>
+            </div>
+        )
+    }
 
+    // 加载状态
+    if (isLoadingApps) {
+        return (
+            <div className="flex flex-col h-full">
+                <header className="flex items-center justify-between h-[36px] mb-4">
+                    <h1 className="flex flex-row items-center text-xl font-semibold">
+                        <Package className="h-6 w-6 mr-2" />
+                        项目总览
+                    </h1>
+                </header>
+                <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">加载中...</p>
+                </div>
+            </div>
+        )
+    }
+
+    // 有应用时的内容
     return (
-        <div className="flex-1 flex-col">
-            <header className="flex items-center justify-between h-[36px] mb-4">
+        <div className="flex flex-col h-full">
+            <header className="flex items-center justify-between h-[36px] mb-6">
                 <h1 className="flex flex-row items-center text-xl font-semibold">
                     <Package className="h-6 w-6 mr-2" />
                     项目总览
@@ -232,7 +149,118 @@ export function Projects() {
                 <CreateProjectsModal onCreateProject={createApplication} />
             </header>
 
-            {content}
+            {/* 应用选择器 */}
+            <AppSelector selectedAppId={selectedAppId} onAppChange={setSelectedAppId} />
+
+            {/* 核心指标卡片 */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                <MetricCard title="PV" value={formattedMetrics.pv} icon={TrendingUp} />
+                <MetricCard title="UV" value={formattedMetrics.uv} icon={Users} />
+                <MetricCard title="错误率" value={formattedMetrics.errorRate} icon={TrendingDown} />
+                <MetricCard title="性能评分" value={formattedMetrics.performanceScore} icon={Package} />
+            </div>
+
+            {/* 趋势折线图 */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>趋势分析</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {isLoadingOverview ? (
+                        <div className="flex items-center justify-center h-[400px]">
+                            <p className="text-muted-foreground">加载中...</p>
+                        </div>
+                    ) : chartData.length === 0 ? (
+                        <div className="flex items-center justify-center h-[400px]">
+                            <p className="text-muted-foreground">暂无数据</p>
+                        </div>
+                    ) : (
+                        <ChartContainer
+                            config={{
+                                pv: {
+                                    label: 'PV',
+                                    color: 'hsl(var(--chart-1))',
+                                },
+                                uv: {
+                                    label: 'UV',
+                                    color: 'hsl(var(--chart-2))',
+                                },
+                                errorRate: {
+                                    label: '错误率',
+                                    color: 'hsl(var(--chart-3))',
+                                },
+                                performanceScore: {
+                                    label: '性能评分',
+                                    color: 'hsl(var(--chart-4))',
+                                },
+                            }}
+                            className="h-[400px] w-full"
+                        >
+                            <LineChart
+                                accessibilityLayer
+                                data={chartData}
+                                margin={{
+                                    left: 12,
+                                    right: 12,
+                                    top: 12,
+                                    bottom: 12,
+                                }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground))" strokeOpacity={0.2} />
+                                <XAxis
+                                    dataKey="date"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickMargin={8}
+                                    tickFormatter={value => value}
+                                />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} />
+                                <ChartTooltip
+                                    content={
+                                        <ChartTooltipContent
+                                            indicator="line"
+                                            labelFormatter={value => `日期: ${value}`}
+                                        />
+                                    }
+                                    cursor={false}
+                                />
+                                <Line
+                                    dataKey="pv"
+                                    type="monotone"
+                                    stroke="var(--color-pv)"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    activeDot={{ r: 4 }}
+                                />
+                                <Line
+                                    dataKey="uv"
+                                    type="monotone"
+                                    stroke="var(--color-uv)"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    activeDot={{ r: 4 }}
+                                />
+                                <Line
+                                    dataKey="errorRate"
+                                    type="monotone"
+                                    stroke="var(--color-errorRate)"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    activeDot={{ r: 4 }}
+                                />
+                                <Line
+                                    dataKey="performanceScore"
+                                    type="monotone"
+                                    stroke="var(--color-performanceScore)"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    activeDot={{ r: 4 }}
+                                />
+                            </LineChart>
+                        </ChartContainer>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     )
 }

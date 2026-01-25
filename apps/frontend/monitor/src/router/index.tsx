@@ -1,14 +1,11 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { Layout } from '@/layout'
-import { Alerts } from '@/views/Alerts'
-import { Crons } from '@/views/Corns'
-import { Dashboard } from '@/views/Dashboard'
-import { Issues } from '@/views/Issues'
+import { Errors } from '@/views/Errors'
 import { Login } from '@/views/Login'
-import { Performance } from '@/views/Performance'
-import { PerformanceSummary } from '@/views/PerformanceSummary'
+import { PerformanceMetrics } from '@/views/PerformanceMetrics'
 import { Projects } from '@/views/Projects'
+import { UserBehavior } from '@/views/UserBehavior'
 
 import AuthRoute from './AuthRoute'
 
@@ -32,28 +29,16 @@ export const router: PickRouter<A> = createBrowserRouter([
                 element: <Projects />,
             },
             {
-                path: 'issues',
-                element: <Issues />,
+                path: 'errors',
+                element: <Errors />,
             },
             {
-                path: 'performance',
-                element: <Performance />,
+                path: 'performance-metrics',
+                element: <PerformanceMetrics />,
             },
             {
-                path: 'performance/summary',
-                element: <PerformanceSummary />,
-            },
-            {
-                path: 'dashboard',
-                element: <Dashboard />,
-            },
-            {
-                path: 'crons',
-                element: <Crons />,
-            },
-            {
-                path: 'alerts',
-                element: <Alerts />,
+                path: 'user-behavior',
+                element: <UserBehavior />,
             },
             {
                 path: '/',

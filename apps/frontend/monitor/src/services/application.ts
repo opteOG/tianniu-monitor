@@ -1,4 +1,5 @@
 import { ApplicationListRes, CreateApplicationPayload } from '@/types/api'
+import { ProjectOverviewParams, ProjectOverviewRes } from '@/types/project-overview'
 import { request } from '@/utils/request'
 
 /**
@@ -25,4 +26,13 @@ export const removeApplication = async (appId: string) => {
  */
 export const createApplication = async (data: CreateApplicationPayload) => {
     return await request.post('/application', data)
+}
+
+/**
+ * 获取项目总览数据
+ * @param params 项目总览请求参数
+ * @returns
+ */
+export const fetchProjectOverview = async (params: ProjectOverviewParams): Promise<ProjectOverviewRes> => {
+    return await request.get('/application/overview', { params })
 }

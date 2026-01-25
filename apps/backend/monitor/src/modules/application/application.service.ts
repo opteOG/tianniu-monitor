@@ -1,8 +1,4 @@
-/*
- *   Copyright (c) 2024 妙码学院 @Heyi
- *   All rights reserved.
- *   妙码学院官方出品，作者 @Heyi，供学员学习使用，可用作练习，可用作美化简历，不可开源。
- */
+
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -17,8 +13,8 @@ export class ApplicationService {
     ) {}
 
     async create(payload) {
-        this.applicationRepository.save(payload)
-        return payload
+        const saved = await this.applicationRepository.save(payload)
+        return saved
     }
 
     async update(payload) {
@@ -28,21 +24,37 @@ export class ApplicationService {
     async list(params: { userId: number }) {
         const [data, count] = await this.applicationRepository.findAndCount({
             where: { user: { id: params.userId } },
+            relations: ['user'],
+            order: { createdAt: 'DESC' },
         })
 
+        // 转换为前端需要的格式
+        const applications = data.map(app => ({
+            type: app.type,
+            appId: app.appId,
+            name: app.name,
+            bugs: 0, // TODO: 从错误统计中获取
+            transactions: 0, // TODO: 从性能统计中获取
+            data: [], // TODO: 从统计数据中获取
+            createdAt: app.createdAt || new Date(),
+        }))
+
         return {
-            applications: data,
+            applications,
             count,
         }
     }
 
     async delete(payload: { appId: string; userId: number }) {
-        const res = await this.applicationRepository.delete({ appId: payload.appId, user: { id: payload.userId } })
+        const result = await this.applicationRepository.findOne({
+            where: { appId: payload.appId, user: { id: payload.userId } },
+        })
 
-        if (res.affected === 0) {
-            return new NotFoundException('Application not found')
+        if (!result) {
+            throw new NotFoundException('Application not found')
         }
 
-        return res.raw[0]
+        await this.applicationRepository.remove(result)
+        return { success: true }
     }
 }
