@@ -25,9 +25,7 @@ export const onload = (callback: (metrics: { name: string; value: number }) => v
   }
 }
 
-/**
- * 性能指标采集插件
- */
+// 性能指标采集插件
 export class Metrics {
   constructor(private transport: Transport) {}
 

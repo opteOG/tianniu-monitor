@@ -1,4 +1,4 @@
-import { Metrics } from "@tianniu-monitor/browser-utils";
+import { Metrics, whiteScreenIntegration } from "@tianniu-monitor/browser-utils";
 import { Monitoring, MonitoringOptions } from "@tianniu-monitor/monitor-core";
 import { BrowserTransport } from "./transport/transport";
 import { Errors } from "./tracing/errorIntegration";
@@ -9,7 +9,7 @@ import { Errors } from "./tracing/errorIntegration";
  * @returns 监控实例
  */
 export function init(options: MonitoringOptions) {
-  const { dsn, integrations = [] } = options
+  const { dsn, integrations = [], watchWhiteScreen = false, whiteBoxElements = [] } = options
   // 初始化监控
   const monitoring = new Monitoring(options)
   // 初始化传输层
@@ -20,6 +20,8 @@ export function init(options: MonitoringOptions) {
   new Metrics(transport).init()
   // 初始化错误插件
   new Errors(transport).init()
+  // 初始化白屏监控插件
+  watchWhiteScreen && new whiteScreenIntegration(transport, whiteBoxElements).init()
 
 
 
