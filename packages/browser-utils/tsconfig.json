@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../browser/src/tracing/record.ts"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable"]
   }

@@ -1,7 +1,7 @@
 import { Transport } from '@tianniu-monitor/monitor-core'
 
 // 白屏监控插件
-export class whiteScreenIntegration {
+export class WhiteScreenIntegration {
   constructor(private transport: Transport, private whiteBoxElements: string[] = ['html', 'body', '#app', '#root']) {}
 
   // 初始化白屏监控
