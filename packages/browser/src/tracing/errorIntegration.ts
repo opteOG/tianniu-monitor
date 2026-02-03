@@ -12,18 +12,18 @@ export class Errors {
 
   init() {
     // 监听全局错误
-    window.onerror = (message, source, lineno, colno, error) => {
+    window.addEventListener('error', (event) => {
       const payload: UnhandledRejectionErrorPayload = {
         event_type: 'error',
-        stack: error?.stack || '',
-        message,
+        stack: event?.error?.stack || '',
+        message: event?.error?.message || '',
         path: window.location.pathname,
       }
       this.transport.send({ ...payload })
-    }
+    })
 
     // 监听未处理的 Promise 拒绝事件
-    window.onunhandledrejection = (event) => {
+    window.addEventListener('unhandledrejection', (event) => {
       const payload: UnhandledRejectionErrorPayload = {
         event_type: 'error',
         stack: event?.reason?.stack || '',
@@ -31,6 +31,6 @@ export class Errors {
         path: window.location.pathname,
       }
       this.transport.send({ ...payload })
-    }
+    })
   }
 }

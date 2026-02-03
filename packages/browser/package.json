@@ -21,9 +21,12 @@
   "description": "",
   "dependencies": {
     "@tianniu-monitor/browser-utils": "workspace:*",
-    "@tianniu-monitor/monitor-core": "workspace:*"
+    "@tianniu-monitor/monitor-core": "workspace:*",
+    "@rrweb/record": "^2.0.0-alpha.15",
+    "@rrweb/packer": "^2.0.0-alpha.15"
   },
   "devDependencies": {
-    "tsup": "8.5.1"
+    "tsup": "8.5.1",
+    "@rrweb/types": "^2.0.0-alpha.15"
   }
 }
