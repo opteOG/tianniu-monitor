@@ -1,5 +1,5 @@
 export { Metrics } from './integrations/metrics'
-export { whiteScreenIntegration } from './integrations/whiteScreenIntegration'
+export { WhiteScreenIntegration } from './integrations/whiteScreenIntegration'
 
 /**
  * 获取浏览器信息
