@@ -10,8 +10,6 @@ import {
   createApplicationSchema,
   DeleteApplicationDto,
   deleteApplicationSchema,
-  GetOverviewDto,
-  getOverviewSchema,
 } from './application.dto'
 import { ApplicationService } from './application.service'
 
@@ -57,13 +55,5 @@ export class ApplicationController {
     return { data: result, success: true }
   }
 
-  @Get('overview')
-  @UsePipes(new ZodValidationPipe(getOverviewSchema))
-  async getOverview(@Query() query: GetOverviewDto) {
-    const result = await this.applicationService.getOverview({
-      appId: query.appId,
-      granularity: query.granularity,
-    })
-    return { data: result, success: true }
-  }
+  
 }

@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 
 import { ApplicationEntity } from '../../entities/application.entity'
-import { TimeGranularity } from './application.dto'
 
 @Injectable()
 export class ApplicationService {
@@ -52,9 +51,5 @@ export class ApplicationService {
 
     await this.applicationRepository.remove(result)
     return { success: true }
-  }
-  // 获取应用总览
-  async getOverview(payload: { appId: string; granularity: TimeGranularity }) {
-    return payload
   }
 }

@@ -1,6 +1,7 @@
 import { ClickHouseClient } from '@clickhouse/client'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { EmailService } from '../email/email.service'
+import { GetOverviewDto } from './span.dto';
 
 @Injectable()
 export class SpanService {
@@ -44,5 +45,9 @@ export class SpanService {
         Logger.log('error alert job failed', error)
       }
     }
+  }
+
+  async getOverview(params: GetOverviewDto) {
+    const { appId, granularity } = params
   }
 }

@@ -6,7 +6,8 @@ import { setupCounter } from './counter.ts'
 import { init } from '@tianniu-monitor/browser'
 const monitoring = init({
   dsn: 'http://localhost:3000/tracing/fewjonqks',
-  integrations: []
+  integrations: [],
+  watchWhiteScreen: true
 })
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `

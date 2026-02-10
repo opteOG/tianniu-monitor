@@ -34,5 +34,5 @@ export const createApplication = async (data: CreateApplicationPayload) => {
  * @returns
  */
 export const fetchProjectOverview = async (params: ProjectOverviewParams): Promise<ProjectOverviewRes> => {
-    return await request.get('/application/overview', { params })
+    return await request.get('/overview', { params })
 }

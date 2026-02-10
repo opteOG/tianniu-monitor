@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Logger, Post, Param } from '@nestjs/common'
+import { Body, Controller, Get, Logger, Post, Param, UsePipes, Query } from '@nestjs/common'
 import { SpanService } from './span.service';
+import type { GetOverviewDto } from './span.dto';
 
 @Controller()
 export class SpanController {
@@ -12,19 +13,12 @@ export class SpanController {
     return this.spanService.tracking(app_id, params)
   }
 
-  // @Get('span')
-  // span() {
-  //   return this.spanService.span()
-  // }
-
-  // @Get('bugs')
-  // bugs() {
-  //   return this.spanService.bugs()
-  // }
-
-  // @Get('performance')
-  // performance() {
-  //   return this.spanService.performance()
-  // }
+  @Get('overview')
+  async getOverview(@Query() query: GetOverviewDto) {
+    const result = await this.spanService.getOverview({
+      appId: query.appId,
+      granularity: query.granularity,
+    })
+    return { data: result, success: true }
+  }
 }
-
