@@ -7,7 +7,7 @@ import { request } from '@/utils/request'
  * @returns
  */
 export const fetchErrorList = async (params: ErrorListParams): Promise<ErrorListRes> => {
-    return await request.get('/application/errors', { params })
+    return await request.get('/dsn-api/errors', { params })
 }
 
 /**
@@ -16,6 +16,6 @@ export const fetchErrorList = async (params: ErrorListParams): Promise<ErrorList
  * @returns
  */
 export const updateErrorStatus = async (params: UpdateErrorStatusParams) => {
-    return await request.patch('/application/errors/status', params)
+    return await request.patch('/dsn-api/errors/status', params)
 }
 

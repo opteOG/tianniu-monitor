@@ -1,0 +1,17 @@
+{
+  "name": "@tianniu-monitor/types",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build:watch": "tsup --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "Tianniu",
+  "license": "ISC",
+  "description": ""
+}

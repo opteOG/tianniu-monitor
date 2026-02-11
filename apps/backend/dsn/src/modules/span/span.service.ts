@@ -1,7 +1,14 @@
 import { ClickHouseClient } from '@clickhouse/client'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { EmailService } from '../email/email.service'
-import { GetOverviewDto } from './span.dto';
+
+type BaseMonitorStorageRow = {
+  app_id: string
+  info: string
+  created_at: string
+  event_type: string
+  message: string
+}
 
 @Injectable()
 export class SpanService {
@@ -27,7 +34,7 @@ export class SpanService {
 
     const alertParams = {
       ...params,
-      ...values
+      ...values,
     }
 
     if (event_type === 'error') {
@@ -37,17 +44,38 @@ export class SpanService {
         await this.emailService.alert({
           to: 'm19196427121@163.com',
           subject: '错误告警',
-          params: alertParams
+          params: alertParams,
         })
         // Logger.log('Error alert job added to queue')
-      }
-      catch (error) {
+      } catch (error) {
         Logger.log('error alert job failed', error)
       }
     }
   }
 
-  async getOverview(params: GetOverviewDto) {
-    const { appId, granularity } = params
+  // 获取对应app_id下的event_type的所有数据
+  async getEventTypeAllData(app_id: string, event_type: string): Promise<BaseMonitorStorageRow[]> {
+    const resultSet = await this.clickhouseClient.query({
+      query: `
+        SELECT
+          app_id,
+          info,
+          created_at,
+          event_type,
+          message
+        FROM tianniu.base_monitor_storage
+        WHERE app_id = {app_id:String} AND event_type = {event_type:String}
+        ORDER BY created_at DESC
+      `,
+      query_params: {
+        app_id,
+        event_type,
+      },
+      format: 'JSONEachRow',
+    })
+
+    const rows = (await resultSet.json()) as unknown
+    if (!Array.isArray(rows)) return []
+    return rows as BaseMonitorStorageRow[]
   }
 }

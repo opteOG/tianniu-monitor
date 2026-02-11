@@ -12,7 +12,7 @@ export class Errors {
 
   init() {
     // 监听全局错误
-    window.addEventListener('error', (event) => {
+    window.addEventListener('error', event => {
       const payload: UnhandledRejectionErrorPayload = {
         event_type: 'error',
         stack: event?.error?.stack || '',
@@ -23,7 +23,7 @@ export class Errors {
     })
 
     // 监听未处理的 Promise 拒绝事件
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', event => {
       const payload: UnhandledRejectionErrorPayload = {
         event_type: 'error',
         stack: event?.reason?.stack || '',

@@ -1,7 +1,6 @@
 import axios, { CreateAxiosDefaults } from 'axios'
 
 const config: CreateAxiosDefaults = {
-  baseURL: '/api',
   timeout: 5000,
 }
 

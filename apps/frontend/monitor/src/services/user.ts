@@ -7,7 +7,7 @@ import { request } from '@/utils/request'
  * @returns
  */
 export const login = async (data: LoginPayload): Promise<LoginRes> => {
-    return await request.post('/auth/login', data)
+    return await request.post('/api/auth/login', data)
 }
 
 /**
@@ -15,7 +15,7 @@ export const login = async (data: LoginPayload): Promise<LoginRes> => {
  * @returns
  */
 export const currentUser = async (): Promise<CurrentUserRes> => {
-    return await request.get('/currentUser')
+    return await request.get('/api/currentUser')
 }
 
 /**
@@ -24,7 +24,7 @@ export const currentUser = async (): Promise<CurrentUserRes> => {
  * @returns
  */
 export const register = async (data: { username: string; password: string }) => {
-    return await request.post('/admin/register', data)
+    return await request.post('/api/admin/register', data)
 }
 
 /**
@@ -32,5 +32,5 @@ export const register = async (data: { username: string; password: string }) => 
  * @returns
  */
 export const logout = async () => {
-    return await request.post('/auth/logout')
+    return await request.post('/api/auth/logout')
 }

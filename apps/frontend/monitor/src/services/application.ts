@@ -7,7 +7,7 @@ import { request } from '@/utils/request'
  * @returns
  */
 export const fetchApplicationList = async (): Promise<ApplicationListRes> => {
-    return await request.get('/application')
+    return await request.get('/api/application')
 }
 
 /**
@@ -16,7 +16,7 @@ export const fetchApplicationList = async (): Promise<ApplicationListRes> => {
  * @returns
  */
 export const removeApplication = async (appId: string) => {
-    return await request.delete(`/application`, { data: { appId } })
+    return await request.delete(`/api/application`, { data: { appId } })
 }
 
 /**
@@ -25,7 +25,7 @@ export const removeApplication = async (appId: string) => {
  * @returns
  */
 export const createApplication = async (data: CreateApplicationPayload) => {
-    return await request.post('/application', data)
+    return await request.post('/api/application', data)
 }
 
 /**
@@ -34,5 +34,5 @@ export const createApplication = async (data: CreateApplicationPayload) => {
  * @returns
  */
 export const fetchProjectOverview = async (params: ProjectOverviewParams): Promise<ProjectOverviewRes> => {
-    return await request.get('/overview', { params })
+    return await request.get('/dsn-api/overview', { params })
 }

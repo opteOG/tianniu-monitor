@@ -1,7 +1,6 @@
 import { onCLS, onFCP, onLCP, onTTFB } from '../metrics'
 import type { Transport } from '@tianniu-monitor/monitor-core'
 
-
 export const onload = (callback: (metrics: { name: string; value: number }) => void) => {
   // 获取所有导航条目的数据
   const navigationEntries = performance.getEntriesByType('navigation')
@@ -33,7 +32,7 @@ export class Metrics {
     window.addEventListener('load', () => {
       ;[onCLS, onLCP, onFCP, onTTFB, onload].forEach(metricsFn => {
         // 数据上报
-        metricsFn((metrics) => {
+        metricsFn(metrics => {
           this.transport.send({
             event_type: 'performance',
             type: 'web_vital',

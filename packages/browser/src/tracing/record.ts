@@ -62,7 +62,7 @@ export class RecordIntegration {
       // 仅在页面加载完成后开始录制
       recordAfter: 'load',
       // 对事件进行压缩
-      packFn: pack
+      packFn: pack,
     })
   }
 

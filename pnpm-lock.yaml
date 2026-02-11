@@ -481,7 +481,7 @@ importers:
     dependencies:
       '@tianniu-monitor/browser':
         specifier: workspace:*
-        version: link:../../packages/vue
+        version: link:../../packages/browser
     devDependencies:
       typescript:
         specifier: ~5.9.3

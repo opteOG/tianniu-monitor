@@ -1,4 +1,4 @@
-import { Metrics, whiteScreenIntegration } from "@tianniu-monitor/browser-utils";
+import { Metrics, WhiteScreenIntegration } from "@tianniu-monitor/browser-utils";
 import { Monitoring } from "@tianniu-monitor/monitor-core";
 import { BrowserTransport } from "./transport/transport";
 import { Errors } from "./tracing/errorIntegration";
@@ -22,7 +22,7 @@ export function init(options: VueMonitorOptions) {
   // 初始化错误插件
   reportVueError ? new Errors(transport).init(vueInstance) : new Errors(transport).init()
   // 初始化白屏监控插件
-  watchWhiteScreen && new whiteScreenIntegration(transport, whiteBoxElements).init()
+  watchWhiteScreen && new WhiteScreenIntegration(transport, whiteBoxElements).init()
 
 
 
