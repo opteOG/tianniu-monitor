@@ -1,8 +1,11 @@
 import { Transport } from '@tianniu-monitor/monitor-core'
 
 // 白屏监控插件
-export class whiteScreenIntegration {
-  constructor(private transport: Transport, private whiteBoxElements: string[] = ['html', 'body', '#app', '#root']) {}
+export class WhiteScreenIntegration {
+  constructor(
+    private transport: Transport,
+    private whiteBoxElements: string[] = ['html', 'body', '#app', '#root']
+  ) {}
 
   // 初始化白屏监控
   init() {
@@ -16,8 +19,8 @@ export class whiteScreenIntegration {
   }
   // 采样对比
   private sample() {
-    let emptyPoints = 0  // 容器元素个数
-    let containerElements = this.whiteBoxElements  // 定义外层容器元素集合
+    let emptyPoints = 0 // 容器元素个数
+    let containerElements = this.whiteBoxElements // 定义外层容器元素集合
 
     // 选中dom的名称
     const getSelector = (element: Element) => {
@@ -42,8 +45,8 @@ export class whiteScreenIntegration {
     }
 
     for (let i = 1; i <= 9; i++) {
-      let xPoint = document.elementFromPoint(window.innerWidth * i / 10, window.innerHeight / 2)
-      let yPoint = document.elementFromPoint(window.innerWidth / 2, window.innerHeight * i / 10)
+      let xPoint = document.elementFromPoint((window.innerWidth * i) / 10, window.innerHeight / 2)
+      let yPoint = document.elementFromPoint(window.innerWidth / 2, (window.innerHeight * i) / 10)
       isContainer(xPoint)
       if (i !== 5) {
         isContainer(yPoint)

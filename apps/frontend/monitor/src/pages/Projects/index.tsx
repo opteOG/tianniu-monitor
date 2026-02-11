@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Package, TrendingDown, TrendingUp, Users } from 'lucide-react'
+import { Activity, Bug, Package, TrendingDown, TrendingUp, Users } from 'lucide-react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 
 import { AppSelector, useAppSelector } from '@/components/AppSelector'
@@ -77,30 +77,118 @@ export function Projects() {
     const formatMetric = (metrics: ProjectMetrics | undefined) => {
         if (!metrics) {
             return {
-                pv: '-',
-                uv: '-',
-                errorRate: '-',
-                performanceScore: '-',
+                errorCount: '-',
+                whiteScreenCount: '-',
+                recordCount: '-',
+                webVitalSampleCount: '-',
             }
         }
         return {
-            pv: metrics.pv.toLocaleString(),
-            uv: metrics.uv.toLocaleString(),
-            errorRate: `${metrics.errorRate.toFixed(2)}%`,
-            performanceScore: metrics.performanceScore.toFixed(0),
+            errorCount: metrics.errorCount.toLocaleString(),
+            whiteScreenCount: metrics.whiteScreenCount.toLocaleString(),
+            recordCount: metrics.recordCount.toLocaleString(),
+            webVitalSampleCount: metrics.webVitalSampleCount.toLocaleString(),
         }
     }
 
     const formattedMetrics = formatMetric(overviewData?.metrics)
 
-    // 格式化趋势图数据
-    const chartData = overviewData?.trends?.map(item => ({
-        date: new Date(item.date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
-        pv: item.pv,
-        uv: item.uv,
-        errorRate: item.errorRate,
-        performanceScore: item.performanceScore,
-    })) || []
+    const formatBucketLabel = (bucket: string) => {
+        if (bucket.includes('W')) return bucket
+        const dt = new Date(bucket)
+        if (!Number.isNaN(dt.getTime())) {
+            return dt.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+        }
+        return bucket
+    }
+
+    const countTrendChartData =
+        overviewData?.trends
+            ? (() => {
+                  const buckets = new Map<
+                      string,
+                      {
+                          bucket: string
+                          label: string
+                          errors?: number
+                          whiteScreens?: number
+                          records?: number
+                      }
+                  >()
+
+                  const upsert = (bucket: string) => {
+                      const existing = buckets.get(bucket)
+                      if (existing) return existing
+                      const created = { bucket, label: formatBucketLabel(bucket) }
+                      buckets.set(bucket, created)
+                      return created
+                  }
+
+                  for (const p of overviewData.trends.errors ?? []) {
+                      const item = upsert(p.bucket)
+                      ;(item as any).errors = p.count
+                  }
+                  for (const p of overviewData.trends.whiteScreens ?? []) {
+                      const item = upsert(p.bucket)
+                      ;(item as any).whiteScreens = p.count
+                  }
+                  for (const p of overviewData.trends.records ?? []) {
+                      const item = upsert(p.bucket)
+                      ;(item as any).records = p.count
+                  }
+
+                  return [...buckets.values()]
+                      .sort((a, b) => (a.bucket < b.bucket ? -1 : a.bucket > b.bucket ? 1 : 0))
+                      .map(item => ({
+                          label: item.label,
+                          errors: item.errors ?? 0,
+                          whiteScreens: item.whiteScreens ?? 0,
+                          records: item.records ?? 0,
+                      }))
+              })()
+            : []
+
+    const webVitalSeries = overviewData?.webVitals ?? []
+    const preferredWebVitalOrder = ['LCP', 'CLS', 'FCP', 'TTFB', 'LOAD']
+    const selectedWebVitalSeries = [...webVitalSeries]
+        .sort((a, b) => {
+            const ia = preferredWebVitalOrder.indexOf(a.name)
+            const ib = preferredWebVitalOrder.indexOf(b.name)
+            const ra = ia === -1 ? Number.MAX_SAFE_INTEGER : ia
+            const rb = ib === -1 ? Number.MAX_SAFE_INTEGER : ib
+            return ra - rb
+        })
+        .slice(0, 4)
+
+    const webVitalChartData = (() => {
+        const buckets = new Map<string, Record<string, string | number | null>>()
+
+        const upsert = (bucket: string) => {
+            const existing = buckets.get(bucket)
+            if (existing) return existing
+            const created: Record<string, string | number | null> = { bucket, label: formatBucketLabel(bucket) }
+            buckets.set(bucket, created)
+            return created
+        }
+
+        for (const series of selectedWebVitalSeries) {
+            for (const point of series.points ?? []) {
+                const row = upsert(point.bucket)
+                row[series.name] = point.p95 ?? point.p50 ?? null
+            }
+        }
+
+        return [...buckets.values()]
+            .sort((a, b) => {
+                const ba = String(a.bucket)
+                const bb = String(b.bucket)
+                return ba < bb ? -1 : ba > bb ? 1 : 0
+            })
+            .map(row => {
+                const { bucket: _bucket, ...rest } = row
+                return rest
+            })
+    })()
 
     // 空状态：没有应用
     if (!isLoadingApps && (!applications || applications.length === 0)) {
@@ -154,51 +242,47 @@ export function Projects() {
 
             {/* 核心指标卡片 */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                <MetricCard title="PV" value={formattedMetrics.pv} icon={TrendingUp} />
-                <MetricCard title="UV" value={formattedMetrics.uv} icon={Users} />
-                <MetricCard title="错误率" value={formattedMetrics.errorRate} icon={TrendingDown} />
-                <MetricCard title="性能评分" value={formattedMetrics.performanceScore} icon={Package} />
+                <MetricCard title="错误数" value={formattedMetrics.errorCount} icon={Bug} />
+                <MetricCard title="白屏数" value={formattedMetrics.whiteScreenCount} icon={TrendingDown} />
+                <MetricCard title="录屏数" value={formattedMetrics.recordCount} icon={Users} />
+                <MetricCard title="WebVitals 样本数" value={formattedMetrics.webVitalSampleCount} icon={Activity} />
             </div>
 
             {/* 趋势折线图 */}
             <Card>
                 <CardHeader>
-                    <CardTitle>趋势分析</CardTitle>
+                    <CardTitle>事件趋势</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {isLoadingOverview ? (
                         <div className="flex items-center justify-center h-[400px]">
                             <p className="text-muted-foreground">加载中...</p>
                         </div>
-                    ) : chartData.length === 0 ? (
+                    ) : countTrendChartData.length === 0 ? (
                         <div className="flex items-center justify-center h-[400px]">
                             <p className="text-muted-foreground">暂无数据</p>
                         </div>
                     ) : (
                         <ChartContainer
                             config={{
-                                pv: {
-                                    label: 'PV',
+                                errors: {
+                                    label: '错误',
                                     color: 'hsl(var(--chart-1))',
                                 },
-                                uv: {
-                                    label: 'UV',
+                                whiteScreens: {
+                                    label: '白屏',
                                     color: 'hsl(var(--chart-2))',
                                 },
-                                errorRate: {
-                                    label: '错误率',
+                                records: {
+                                    label: '录屏',
                                     color: 'hsl(var(--chart-3))',
-                                },
-                                performanceScore: {
-                                    label: '性能评分',
-                                    color: 'hsl(var(--chart-4))',
                                 },
                             }}
                             className="h-[400px] w-full"
                         >
                             <LineChart
                                 accessibilityLayer
-                                data={chartData}
+                                data={countTrendChartData}
                                 margin={{
                                     left: 12,
                                     right: 12,
@@ -208,7 +292,7 @@ export function Projects() {
                             >
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground))" strokeOpacity={0.2} />
                                 <XAxis
-                                    dataKey="date"
+                                    dataKey="label"
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
@@ -219,43 +303,95 @@ export function Projects() {
                                     content={
                                         <ChartTooltipContent
                                             indicator="line"
-                                            labelFormatter={value => `日期: ${value}`}
+                                            labelFormatter={value => `时间: ${value}`}
                                         />
                                     }
                                     cursor={false}
                                 />
                                 <Line
-                                    dataKey="pv"
+                                    dataKey="errors"
                                     type="monotone"
-                                    stroke="var(--color-pv)"
+                                    stroke="var(--color-errors)"
                                     strokeWidth={2}
                                     dot={false}
                                     activeDot={{ r: 4 }}
                                 />
                                 <Line
-                                    dataKey="uv"
+                                    dataKey="whiteScreens"
                                     type="monotone"
-                                    stroke="var(--color-uv)"
+                                    stroke="var(--color-whiteScreens)"
                                     strokeWidth={2}
                                     dot={false}
                                     activeDot={{ r: 4 }}
                                 />
                                 <Line
-                                    dataKey="errorRate"
+                                    dataKey="records"
                                     type="monotone"
-                                    stroke="var(--color-errorRate)"
+                                    stroke="var(--color-records)"
                                     strokeWidth={2}
                                     dot={false}
                                     activeDot={{ r: 4 }}
                                 />
-                                <Line
-                                    dataKey="performanceScore"
-                                    type="monotone"
-                                    stroke="var(--color-performanceScore)"
-                                    strokeWidth={2}
-                                    dot={false}
-                                    activeDot={{ r: 4 }}
+                            </LineChart>
+                        </ChartContainer>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle>WebVitals（P95）</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {isLoadingOverview ? (
+                        <div className="flex items-center justify-center h-[400px]">
+                            <p className="text-muted-foreground">加载中...</p>
+                        </div>
+                    ) : webVitalChartData.length === 0 || selectedWebVitalSeries.length === 0 ? (
+                        <div className="flex items-center justify-center h-[400px]">
+                            <p className="text-muted-foreground">暂无数据</p>
+                        </div>
+                    ) : (
+                        <ChartContainer
+                            config={Object.fromEntries(
+                                selectedWebVitalSeries.map((s, idx) => [
+                                    s.name,
+                                    {
+                                        label: s.name,
+                                        color: `hsl(var(--chart-${idx + 1}))`,
+                                    },
+                                ])
+                            )}
+                            className="h-[400px] w-full"
+                        >
+                            <LineChart
+                                accessibilityLayer
+                                data={webVitalChartData}
+                                margin={{
+                                    left: 12,
+                                    right: 12,
+                                    top: 12,
+                                    bottom: 12,
+                                }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground))" strokeOpacity={0.2} />
+                                <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={value => value} />
+                                <YAxis tickLine={false} axisLine={false} tickMargin={8} />
+                                <ChartTooltip
+                                    content={<ChartTooltipContent indicator="line" labelFormatter={value => `时间: ${value}`} />}
+                                    cursor={false}
                                 />
+                                {selectedWebVitalSeries.map(series => (
+                                    <Line
+                                        key={series.name}
+                                        dataKey={series.name}
+                                        type="monotone"
+                                        stroke={`var(--color-${series.name})`}
+                                        strokeWidth={2}
+                                        dot={false}
+                                        activeDot={{ r: 4 }}
+                                    />
+                                ))}
                             </LineChart>
                         </ChartContainer>
                     )}

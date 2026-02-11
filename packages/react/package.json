@@ -1,5 +1,5 @@
 {
-  "name": "@tianniu-monitor/monitor-core",
+  "name": "@tianniu-monitor/react",
   "version": "1.0.0",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -19,7 +19,16 @@
   "author": "Tianniu",
   "license": "ISC",
   "description": "",
+  "peerDependencies": {
+    "react": ">=16.0.0"
+  },
+  "dependencies": {
+    "@tianniu-monitor/browser-utils": "workspace:*",
+    "@tianniu-monitor/monitor-core": "workspace:*"
+  },
   "devDependencies": {
+    "react": "^18.0.0",
+    "@types/react": "^18.0.0",
     "tsup": "8.5.1"
   }
 }

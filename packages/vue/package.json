@@ -1,5 +1,5 @@
 {
-  "name": "@tianniu-monitor/monitor-core",
+  "name": "@tianniu-monitor/vue",
   "version": "1.0.0",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -8,10 +8,10 @@
   "scripts": {
     "build:watch": "pnpm build:watch:transpile & pnpm build:watch:types",
     "build:watch:transpile": "tsup --watch",
-    "build:watch:types": "tsc -p tsconfig.json --emitDeclarationOnly --watch",
+    "build:watch:types": "tsc -p tsconfig.types.json --watch",
     "build": "pnpm build:transpile && pnpm build:types",
     "build:transpile": "tsup",
-    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
+    "build:types": "tsc -p tsconfig.types.json",
     "clean": "rimraf build",
     "typecheck": "tsc --noEmit"
   },
@@ -19,6 +19,10 @@
   "author": "Tianniu",
   "license": "ISC",
   "description": "",
+  "dependencies": {
+    "@tianniu-monitor/browser-utils": "workspace:*",
+    "@tianniu-monitor/monitor-core": "workspace:*"
+  },
   "devDependencies": {
     "tsup": "8.5.1"
   }

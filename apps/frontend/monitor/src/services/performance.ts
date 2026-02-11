@@ -7,6 +7,6 @@ import { request } from '@/utils/request'
  * @returns
  */
 export const fetchPerformanceMetrics = async (params: PerformanceMetricsParams): Promise<PerformanceMetricsRes> => {
-    return await request.get('/application/performance', { params })
+    return await request.get('/dsn-api/performance', { params })
 }
 

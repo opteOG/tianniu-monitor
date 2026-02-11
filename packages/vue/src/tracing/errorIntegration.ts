@@ -7,23 +7,30 @@ export interface UnhandledRejectionErrorPayload {
   path: string
 }
 
+export interface VueErrorPayload {
+  event_type: string
+  err: unknown
+  vm: any
+  info: string
+}
+
 export class Errors {
   constructor(private transport: Transport) {}
 
-  init() {
+  init(vueInstance?: any) {
     // 监听全局错误
-    window.addEventListener('error', event => {
+    window.onerror = (message, source, lineno, colno, error) => {
       const payload: UnhandledRejectionErrorPayload = {
         event_type: 'error',
-        stack: event?.error?.stack || '',
-        message: event?.error?.message || '',
+        stack: error?.stack || '',
+        message,
         path: window.location.pathname,
       }
       this.transport.send({ ...payload })
-    })
+    }
 
     // 监听未处理的 Promise 拒绝事件
-    window.addEventListener('unhandledrejection', event => {
+    window.onunhandledrejection = event => {
       const payload: UnhandledRejectionErrorPayload = {
         event_type: 'error',
         stack: event?.reason?.stack || '',
@@ -31,6 +38,19 @@ export class Errors {
         path: window.location.pathname,
       }
       this.transport.send({ ...payload })
-    })
+    }
+
+    // 监听 Vue内部 错误
+    if (vueInstance) {
+      vueInstance.config.errorHandler = (err: unknown, vm: any, info: string) => {
+        const payload: VueErrorPayload = {
+          event_type: 'vue_error',
+          err,
+          vm,
+          info,
+        }
+        this.transport.send({ ...payload })
+      }
+    }
   }
 }

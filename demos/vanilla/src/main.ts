@@ -46,11 +46,6 @@ function simulateErrors() {
     ;(num as any).toUpperCase() // TypeError: toUpperCase is not a function
   }
 
-  // 3. 引用错误
-  function triggerReferenceError() {
-    console.log(nonExistentVariable) // ReferenceError: nonExistentVariable is not defined
-  }
-
   // 4. 范围错误
   function triggerRangeError() {
     const arr = new Array(-1) // RangeError: Invalid array length
@@ -115,7 +110,6 @@ function simulateErrors() {
   // 将错误函数挂载到window对象，供按钮调用
   ;(window as any).triggerRuntimeError = triggerRuntimeError
   ;(window as any).triggerTypeError = triggerTypeError
-  ;(window as any).triggerReferenceError = triggerReferenceError
   ;(window as any).triggerRangeError = triggerRangeError
   ;(window as any).triggerAsyncError = triggerAsyncError
   ;(window as any).triggerPromiseRejection = triggerPromiseRejection

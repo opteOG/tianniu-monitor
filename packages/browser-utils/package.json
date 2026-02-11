@@ -8,10 +8,10 @@
   "scripts": {
     "build:watch": "pnpm build:watch:transpile & pnpm build:watch:types",
     "build:watch:transpile": "tsup --watch",
-    "build:watch:types": "tsc -p tsconfig.types.json --watch",
+    "build:watch:types": "tsc -p tsconfig.json --emitDeclarationOnly --watch",
     "build": "pnpm build:transpile && pnpm build:types",
     "build:transpile": "tsup",
-    "build:types": "tsc -p tsconfig.types.json",
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
     "clean": "rimraf build",
     "typecheck": "tsc --noEmit"
   },
